@@ -10,9 +10,7 @@ client_id = f'python-mqtt-{random.randint(0, 10000)}'
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
-        print(f"Connected with result code {rc}")
-        # Subscribing in on_connect() - if we lose the connection and
-        # reconnect then subscriptions will be renewed.
+        print("Connected with result code", rc)
         client.subscribe(topic)
 
     client = mqtt_client.Client(client_id=client_id, protocol=mqtt_client.MQTTv311, callback_api_version=mqtt_client.CallbackAPIVersion.VERSION1)
@@ -23,26 +21,26 @@ def connect_mqtt():
 
 def publish(client):
     while True:
-        temperature = round(random.uniform(20, 30), 2)  # Simulate temperature
-        message = json.dumps({'temperature': temperature})
+        temperature = round(random.uniform(20, 30), 2)
+        humidity = round(random.uniform(30, 60), 2)
+        light_level = random.randint(200, 800)
+        message = json.dumps({
+            'temperature': temperature,
+            'humidity': humidity,
+            'light_level': light_level
+        })
         result = client.publish(topic, message)
         status = result[0]
         if status == 0:
-            print(f"Sent `{message}` to topic `{topic}`")
+            print(f"Sent {message} to topic `{topic}`")
         else:
             print(f"Failed to send message to topic {topic}")
         time.sleep(5)
 
 def run():
     client = connect_mqtt()
-    try:
-        client.loop_start()
-        publish(client)
-    except KeyboardInterrupt:
-        print("Disconnecting from broker...")
-    finally:
-        client.loop_stop()
-        client.disconnect()
+    client.loop_start()
+    publish(client)
 
 if __name__ == '__main__':
     run()
